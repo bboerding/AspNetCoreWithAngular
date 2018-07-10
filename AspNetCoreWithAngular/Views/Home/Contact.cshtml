@@ -1,0 +1,31 @@
+﻿@model ContactViewModel
+@{
+    ViewData["Title"] = "Contact";
+}
+<h2>@ViewData["Title"]</h2>
+<h3>@ViewData["Message"]</h3>
+
+<form method="post">
+    <div asp-validation-summary="All"></div>
+    <label asp-for="Name">Your Name:</label>
+    <br />
+    <input asp-for="Name" />
+    <span asp-validation-for="Name"></span>
+    <br />
+    <label asp-for="Email">Email:</label>
+    <br />
+    <input asp-for="Email" type="email" />
+    <span asp-validation-for="Email"></span>
+    <br />
+    <label asp-for="Subject">Subject:</label>
+    <br />
+    <input asp-for="Subject" />
+    <span asp-validation-for="Subject"></span>
+    <br />
+    <label asp-for="Message">Message:</label>
+    <br />
+    <textarea asp-for="Message" rows="4"></textarea>
+    <span asp-validation-for="Message"></span>
+    <br />
+    <input type="submit" name="name" value="Send Message" />
+</form>

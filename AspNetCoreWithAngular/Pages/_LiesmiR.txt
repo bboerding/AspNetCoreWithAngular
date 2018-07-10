@@ -1,0 +1,2 @@
+﻿Pages wird für weitere allgemeine Seiten, die nichts mit der Geschäftslogik zu tun haben, eingebungen
+_ViewStart.cshtml bestimmt das zugehörige Layout-Page
