@@ -46,6 +46,8 @@ namespace WebApplication1.Controllers
             if (ModelState.IsValid)
             {
                 _mailService.SendMessage("bboerding@web.de", model.Subject, $"From: {model.Name} - {model.Email}, Message: {model.Message}");
+                ViewBag.UserMessage = "Mail verschickt";
+                ModelState.Clear();
             }
 
             return View();
