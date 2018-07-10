@@ -36,3 +36,13 @@ body {
         display: none;
     }
 }
+
+menu li {
+    display: inline;
+}
+menu li::after {
+    content: " |"
+}
+menu li:first-of-type::before {
+    content: "| "
+}
