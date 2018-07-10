@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNetCoreWithAngular.Services;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
@@ -11,6 +12,13 @@ namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
+        private IMailService _mailService;
+
+        public HomeController(IMailService mailService)
+        {
+            _mailService = mailService;
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -37,11 +45,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-
-            } 
-            else
-            {
-
+                _mailService.SendMessage("bboerding@web.de", model.Subject, $"From: {model.Name} - {model.Email}, Message: {model.Message}");
             }
 
             return View();
