@@ -2,31 +2,44 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNetCoreWithAngular.Data;
 using AspNetCoreWithAngular.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WebApplication1
+namespace AspNetCoreWithAngular
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration config)
         {
-            Configuration = configuration;
+            _config = config;
         }
 
-        public IConfiguration Configuration { get; }
+        public IConfiguration _config { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //AddTransient bedeutet, dass dieser Service unabhängig von der business-Lösung ist
+            //Einbinden des Datebase-Contextes
+            services.AddDbContext<DatabaseContext>(cfg =>
+            {
+                cfg.UseSqlServer(_config.GetConnectionString("DatabaseConnectionString"));
+            });
+
+            //AddTransient bedeutet, dass dieser Service unabhängig von der business-Lösung bzw. von sich verändernden Daten ist
             services.AddTransient<IMailService, NullMailService>();
+            services.AddTransient<DatabaseSeeder>();
+
+            //AddScoped muss typischerweise für Datenbank-Repositories angegeben werden
+            //  weil man mit lebenden Daten arbeitet
+            services.AddScoped<IDatabaseRepository, DatabaseRepository>();
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -62,6 +75,16 @@ namespace WebApplication1
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            if (env.IsDevelopment())
+            {
+                //Seed the Database
+                using (var scope = app.ApplicationServices.CreateScope())
+                {
+                    var seeder = scope.ServiceProvider.GetService<DatabaseSeeder>();
+                    seeder.Seed();
+                }
+            }
         }
     }
 }

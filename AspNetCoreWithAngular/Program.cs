@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace WebApplication1
+namespace AspNetCoreWithAngular
 {
     public class Program
     {
@@ -19,6 +19,17 @@ namespace WebApplication1
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(SetupConfiguration)
                 .UseStartup<Startup>();
+
+        private static void SetupConfiguration(WebHostBuilderContext ctx, IConfigurationBuilder builder)
+        {
+            //Removing des default configuration options
+            builder.Sources.Clear();
+            //ladt die configurationsdatei "appsettings.json"
+            //Man beliebig viele config-Dateien über die pipe-funtion einbinden...
+            builder.AddJsonFile("appsettings.json", false, true)
+                   .AddEnvironmentVariables();
+        }
     }
 }

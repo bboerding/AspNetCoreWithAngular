@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AspNetCoreWithAngular.Data;
+using AspNetCoreWithAngular.Models;
+using AspNetCoreWithAngular.Services;
+using AspNetCoreWithAngular.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using AspNetCoreWithAngular.Services;
-using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
-using WebApplication1.ViewModels;
 
-namespace WebApplication1.Controllers
+namespace AspNetCoreWithAngular.Controllers
 {
     public class HomeController : Controller
     {
         private IMailService _mailService;
+        private IDatabaseRepository _repository;
 
-        public HomeController(IMailService mailService)
+        public HomeController(IMailService mailService, IDatabaseRepository repository)
         {
             _mailService = mailService;
+            _repository = repository;
         }
 
         public IActionResult Index()
@@ -51,6 +51,12 @@ namespace WebApplication1.Controllers
             }
 
             return View();
+        }
+
+        public IActionResult Shop()
+        {
+            var results = _repository.GetAllProducts();
+            return View(results);
         }
 
         public IActionResult Privacy()
