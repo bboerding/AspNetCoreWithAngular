@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AspNetCoreWithAngular.Data;
 using AspNetCoreWithAngular.Services;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace AspNetCoreWithAngular
 {
@@ -33,6 +35,11 @@ namespace AspNetCoreWithAngular
                 cfg.UseSqlServer(_config.GetConnectionString("DatabaseConnectionString"));
             });
 
+            //Hinzufügen des Automappers
+            //Dafür müssen folgende NuGet-Pakete installiert werde:
+            //Automapper und Automapper.Extensions.Microsoft.DependencyInjection
+            services.AddAutoMapper();
+
             //AddTransient bedeutet, dass dieser Service unabhängig von der business-Lösung bzw. von sich verändernden Daten ist
             services.AddTransient<IMailService, NullMailService>();
             services.AddTransient<DatabaseSeeder>();
@@ -49,7 +56,13 @@ namespace AspNetCoreWithAngular
             });
 
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                //Mit dem LoopingHandlig wird gesteuert, wie sich EntityFramework verhalten soll, wenn Datenbank-Loopings vorkommen
+                //Ein DatabaseLooping ist z.B. zwischen Order und OrderItems vorhanden
+                //- Order hat eine beliebige Menge an OrderItems
+                //- Jedes OrderItem hat eine Referenz auf Order
+                .AddJsonOptions(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

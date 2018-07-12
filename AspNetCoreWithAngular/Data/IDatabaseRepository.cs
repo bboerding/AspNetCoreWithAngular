@@ -7,6 +7,9 @@ namespace AspNetCoreWithAngular.Data
     {
         IEnumerable<Product> GetAllProducts();
         IEnumerable<Product> GetProductsByCategory(string category);
+        IEnumerable<Order> GetAllOrders(bool includeItems);
+        Order GetOrder(int id, bool includeItems);
         bool SaveChanges();
+        void AddEntity(object model);
     }
 }

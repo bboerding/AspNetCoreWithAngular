@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetCoreWithAngular.Data
 {
@@ -51,10 +53,58 @@ namespace AspNetCoreWithAngular.Data
             }
         }
 
+        public IEnumerable<Order> GetAllOrders(bool includeItems)
+        {
+            if (includeItems)
+            {
+                //Alle Orders incl. deren OrderItems und deren Produktbeschreibung
+                return _context.Orders
+                               //Zunächst die Items hinzufügen
+                               .Include(o => o.Items)
+                               //Dann innerhalb der Items das Produkt des Items hinzufügen
+                               .ThenInclude(o => o.Product)
+                               .ToList();
+            }
+            else
+            {
+                //Alle Orders ohne die Items
+                return _context.Orders.ToList();
+            }
+        }
+
+        public Order GetOrder(int id, bool includeItems)
+        {
+            if (includeItems)
+            {
+                //Holt sich eine bestimmte Order incl. deren OrderItems und deren Produkt
+                return _context.Orders
+                               //Zunächst die Items hinzufügen
+                               .Include(o => o.Items)
+                               //Dann innerhalb der Items das Produkt des Items hinzufügen
+                               .ThenInclude(o => o.Product)
+                               .Where(o => o.Id == id)
+                               .FirstOrDefault();
+            }
+            else
+            {
+                return _context.Orders
+                               .Where(o => o.Id == id)
+                               .FirstOrDefault();
+            }
+        }
+
         public bool SaveChanges()
         {
             _logger.LogInformation("SaveChanges was called");
             return _context.SaveChanges() > 0;
+        }
+
+        //Fügt einen Datensatz in die Datenbank ein
+        //Dabei werden über das model die zugehörigen Tabellen (z.B. Orders und OrderItems) ermittelt
+        //und die entsprechenden Datensätze eingefügt
+        public void AddEntity(object model)
+        {
+            _context.Add(model);
         }
     }
 }
