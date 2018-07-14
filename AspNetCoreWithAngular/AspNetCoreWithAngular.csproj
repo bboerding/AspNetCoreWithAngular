@@ -5,6 +5,11 @@
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\ts\main.ts" />
+    <Content Remove="wwwroot\ts\storecustomer.ts" />
+  </ItemGroup>
+
   <!--<ItemGroup>
     <PackageReference Include="jQuery" Version="3.3.1" />
     <PackageReference Include="jQuery.Validation" Version="1.17.0" />
@@ -30,5 +35,10 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\ts\main.ts" />
+    <TypeScriptCompile Include="wwwroot\ts\storecustomer.ts" />
   </ItemGroup>
 </Project>
