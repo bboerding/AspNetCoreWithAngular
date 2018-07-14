@@ -72,8 +72,32 @@ namespace AspNetCoreWithAngular.Data
             }
         }
 
-        public Order GetOrder(int id, bool includeItems)
+        public IEnumerable<Order> GetAllOrdersByUser(string username, bool includeItems)
         {
+            if (username == null) username = "";
+            if (includeItems)
+            {
+                //Alle Orders, die vom aktuellen User erzeugt wurden, incl. deren OrderItems und deren Produktbeschreibung
+                return _context.Orders
+                               //Zunächst die Items hinzufügen
+                               .Include(o => o.Items)
+                               //Dann innerhalb der Items das Produkt des Items hinzufügen
+                               .ThenInclude(o => o.Product)
+                               .Where(o => (o.User.UserName == username || username == ""))
+                               .ToList();
+            }
+            else
+            {
+                //Alle Orders, die vom aktuellen User erzeugt wurden, ohne die Items
+                return _context.Orders
+                               .Where(o => (o.User.UserName == username || username == ""))
+                               .ToList();
+            }
+        }
+
+        public Order GetOrder(string username, int id, bool includeItems)
+        {
+            if (username == null) username = "";
             if (includeItems)
             {
                 //Holt sich eine bestimmte Order incl. deren OrderItems und deren Produkt
@@ -82,13 +106,13 @@ namespace AspNetCoreWithAngular.Data
                                .Include(o => o.Items)
                                //Dann innerhalb der Items das Produkt des Items hinzufügen
                                .ThenInclude(o => o.Product)
-                               .Where(o => o.Id == id)
+                               .Where(o => o.Id == id && (o.User.UserName == username || username == ""))
                                .FirstOrDefault();
             }
             else
             {
                 return _context.Orders
-                               .Where(o => o.Id == id)
+                               .Where(o => o.Id == id && (o.User.UserName == username || username == ""))
                                .FirstOrDefault();
             }
         }
@@ -106,5 +130,6 @@ namespace AspNetCoreWithAngular.Data
         {
             _context.Add(model);
         }
+
     }
 }

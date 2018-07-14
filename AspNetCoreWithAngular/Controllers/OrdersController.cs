@@ -2,6 +2,9 @@
 using AspNetCoreWithAngular.Data.Entities;
 using AspNetCoreWithAngular.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,19 +18,23 @@ namespace AspNetCoreWithAngular.Controllers
     //- [Controller] wird dynamisch auf "Orders" gesetzt
     //Alternativ kann man auch [Route("api/Orders")] bzw. [Route(Orders)] angeben...
     [Route("api/[Controller]")]
+    [Authorize(AuthenticationSchemes=JwtBearerDefaults.AuthenticationScheme)]
     public class OrdersController : Controller
     {
-        private IDatabaseRepository _repository;
-        private ILogger _logger;
-        private IMapper _mapper;
+        private readonly IDatabaseRepository _repository;
+        private readonly ILogger _logger;
+        private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
         public OrdersController(IDatabaseRepository databaseRepository, 
             ILogger<ProductsController> logger,
-            IMapper mapper)
+            IMapper mapper,
+            UserManager<User> userManager)
         {
             _repository = databaseRepository;
             _logger = logger;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         //Alle Orders
@@ -40,9 +47,12 @@ namespace AspNetCoreWithAngular.Controllers
         {
             try
             {
+                var username = User.Identity.Name;
+
+                var orders = _repository.GetAllOrdersByUser(username, includeItems);
 
                 //Die Database-Orders in ViewModel-Orders mappen
-                var ordersViewModel = _mapper.Map<IEnumerable<Order>, IEnumerable<OrderViewModel>>(_repository.GetAllOrders(includeItems));
+                var ordersViewModel = _mapper.Map<IEnumerable<Order>, IEnumerable<OrderViewModel>>(orders);
                 //Ok ist eine Http-200 Rückmeldung
                 return Ok(ordersViewModel);
             }
@@ -61,7 +71,7 @@ namespace AspNetCoreWithAngular.Controllers
             try
             {
                 //Die order aus der Datenbank holen
-                var order = _repository.GetOrder(id, includeItems);
+                var order = _repository.GetOrder(User.Identity.Name, id, includeItems);
                 if (order != null)
                 {
                     //Übertragen des Order-Datensatzes in ein ViewModel
@@ -83,7 +93,7 @@ namespace AspNetCoreWithAngular.Controllers
         //Zum Testen kann man innerhalb von Postman die passenden Werte im Body eintragen 
         //Siehe Pluralsight-Kurs "Building a Web App with ASP.NET Core...", Kapitel 8, Implementing Post
         [HttpPost]
-        public IActionResult Post([FromBody]OrderViewModel model)
+        public async Task<IActionResult> Post([FromBody]OrderViewModel model)
         {
             try
             {
@@ -93,6 +103,13 @@ namespace AspNetCoreWithAngular.Controllers
                     var newOrder = _mapper.Map<OrderViewModel, Order>(model);
                     if (newOrder.OrderDate == DateTime.MaxValue)
                         newOrder.OrderDate = DateTime.Now;
+
+                    //Hier wird der currentUser aus aspnetUsers ermittelt
+                    //der unterscheidet sich von dem User, der sich aus den ClaimsPrincipal bildet
+                    //ACHTUNG: User.Identity.Name ist oft nicht gesetzt
+                    var currentUser = await _userManager.FindByNameAsync(User.Identity.Name);
+                    newOrder.User = currentUser;
+
                     //Einfügen des neuen Datensatzes in die Datenbank
                     _repository.AddEntity(newOrder);
 

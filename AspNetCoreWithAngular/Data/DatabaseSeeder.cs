@@ -1,5 +1,6 @@
 ﻿using AspNetCoreWithAngular.Data.Entities;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,16 +14,37 @@ namespace AspNetCoreWithAngular.Data
     {
         private DatabaseContext _context;
         private IHostingEnvironment _hosting;
+        private UserManager<User> _userManager;
 
-        public DatabaseSeeder(DatabaseContext context, IHostingEnvironment hosting)
+        public DatabaseSeeder(DatabaseContext context, IHostingEnvironment hosting, UserManager<User> userManager)
         {
             _context = context;
             _hosting = hosting;
+            _userManager = userManager;
         }
 
-        public void Seed()
+        public async Task Seed()
         {
             _context.Database.EnsureCreated();
+
+            var user = await _userManager.FindByEmailAsync("bboerding@web.de");
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = "bboerding@web.de",
+                    FirstName = "Bernhard",
+                    LastName = "Börding",
+                    Email = "bboerding@web.de"
+                };
+
+                var result = await _userManager.CreateAsync(user, "P@ssw0rd!");
+                if (result != IdentityResult.Success)
+                {
+                    throw new InvalidOperationException("Failed to create a default user");
+                }
+            }
 
             if (!_context.Products.Any())
             {
@@ -38,6 +60,7 @@ namespace AspNetCoreWithAngular.Data
                 {
                     OrderDate = DateTime.Now,
                     OrderNumber = "12345",
+                    User = user,
                     Items = new List<OrderItem>
                     {
                         new OrderItem

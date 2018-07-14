@@ -2,6 +2,7 @@
 using AspNetCoreWithAngular.Models;
 using AspNetCoreWithAngular.Services;
 using AspNetCoreWithAngular.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Linq;
@@ -53,6 +54,8 @@ namespace AspNetCoreWithAngular.Controllers
             return View();
         }
 
+        //Die Shop-Funktionalität darf nur für angemeldete User durchgeführt werden
+        [Authorize]
         public IActionResult Shop()
         {
             var results = _repository.GetAllProducts();

@@ -2,6 +2,8 @@
 using AspNetCoreWithAngular.Data.Entities;
 using AspNetCoreWithAngular.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,6 +17,7 @@ namespace AspNetCoreWithAngular.Controllers
     //Die OrderId muss also explizit angegeben werden
     //Aufruf: http://localhost:8888/api/orders/1/items
     [Route("api/orders/{orderid}/items")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class OrderItemsController : Controller
     {
         private IDatabaseRepository _repository;
@@ -36,7 +39,7 @@ namespace AspNetCoreWithAngular.Controllers
         public IActionResult Get(int orderId)
         {
             //Die order incl items aus der Datenbank holen
-            var order = _repository.GetOrder(orderId, true);
+            var order = _repository.GetOrder(User.Identity.Name, orderId, true);
             if (order != null)
             {
                 //Alle Items der Order nach OrderItemViewModel mappen
@@ -55,7 +58,7 @@ namespace AspNetCoreWithAngular.Controllers
         public IActionResult Get(int orderId, int id)
         {
             //Die order aus der Datenbank holen
-            var order = _repository.GetOrder(orderId, true);
+            var order = _repository.GetOrder(User.Identity.Name, orderId, true);
             if (order != null)
             {
                 //Das OrderItem holen
